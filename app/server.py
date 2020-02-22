@@ -9,10 +9,11 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-export_file_url = 'https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1'
-export_file_name = 'export.pkl'
+export_file_url = 'https://www.dropbox.com/s/2d1r4hrngdn7bea/exportFaceRecognition.pkl?dl=1'
+export_file_name = 'exportFaceRecognition.pkl'
 
-classes = ['black', 'grizzly', 'teddys']
+classes = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+Traduction = {'Angry':"Za3fan Bravo", 'Disgust':'Mdigouti', 'Fear' : 'Khayef Miedo', 'Happy' : "far7an contento", 'Sad': "7azine triste", 'Surprise':"sorpredido ", 'Neutral' : "neutro walou"}
 path = Path(__file__).parent
 
 app = Starlette()
@@ -52,17 +53,18 @@ loop.close()
 @app.route('/')
 async def homepage(request):
     html_file = path / 'view' / 'index.html'
-    return HTMLResponse(html_file.open().read())
+    return HTMLResponse(html_file.open(encoding="utf8").read())
 
 
 @app.route('/analyze', methods=['POST'])
 async def analyze(request):
     img_data = await request.form()
     img_bytes = await (img_data['file'].read())
-    img = open_image(BytesIO(img_bytes))
+    defaults.cmap = 'gray'
+    img = open_image(BytesIO(img_bytes), convert_mode='L')
     prediction = learn.predict(img)[0]
-    return JSONResponse({'result': str(prediction)})
-
+    predStr = Traduction[str(prediction)]
+    return JSONResponse({'result': str(predStr)})
 
 if __name__ == '__main__':
     if 'serve' in sys.argv:
